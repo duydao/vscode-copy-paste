@@ -33,7 +33,7 @@ export function generateValuesFromJavaScript(document: vscode.TextDocument): str
 }
 
 function createScriptFromDocument(document: vscode.TextDocument) {
-  const timeout = utils.getConfiguration().get('paste-from-file.js.timeout', 1);
+  const timeout = utils.getConfig().get('paste-from-file.js.timeout', 1);
   return new vm.Script(document.getText(), {
     filename: document.fileName,
     timeout: timeout * 1000,

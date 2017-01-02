@@ -1,51 +1,36 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 
 const CONFIG_SECTION = 'copy-paste';
 
+export function getConfig(): vscode.WorkspaceConfiguration {
+  return vscode.workspace.getConfiguration(CONFIG_SECTION);
+}
+
 export function openFile(path: string): Promise<vscode.TextDocument> {
+  let editor = findEditorForTextFile(path);
+  if (editor) {
+    // use the content in the editor if available.
+    return Promise.resolve(editor.document);
+  }
   return Promise.resolve(vscode.workspace.openTextDocument(path));
 }
 
-export function fileExists(path: string): boolean {
-  return fs.existsSync(path);
+export function showFilePicker(files: string[] = []): Promise<string> {
+  if (!files || !Array.isArray(files) || files.length === 0) {
+    return Promise.resolve(null);
+  }
+
+  if (Array.isArray(files) && files.length === 1) {
+    return Promise.resolve(files[0]);
+  }
+  return Promise.resolve(vscode.window.showQuickPick(files));
 }
 
 export function showErrorMessage(message: string): Promise<boolean> {
   return Promise.resolve(vscode.window.showErrorMessage(message))
     .then(() => false);
-}
-
-export function getConfiguration(): vscode.WorkspaceConfiguration {
-  return vscode.workspace.getConfiguration(CONFIG_SECTION);
-}
-
-export function getSortedSelections(): vscode.Selection[] {
-  return vscode.window.activeTextEditor.selections
-    .sort((a, b) => sortPositions(a.start, b.start));
-}
-
-export function sortPositions(a: vscode.Position, b: vscode.Position) {
-  return (a.line === b.line) ? a.character - b.character : a.line - b.line;
-}
-
-export function getPositionFromSelection(selection: vscode.Selection): vscode.Position {
-  let [position] = [selection.start, selection.end].sort((a, b) => sortPositions(a, b));
-  return position;
-}
-
-export function pasteValuesIntoSelection(items: string[]): Thenable<boolean> {
-  const editor = vscode.window.activeTextEditor;
-  return editor.edit(edit => getSortedSelections().forEach((selection, index) => 
-    pasteValue(edit, items[index % items.length], selection)
-  ));
-}
-
-export function pasteValue(edit: vscode.TextEditorEdit, value: string, selection: vscode.Selection) {
-  edit.insert(selection.active, value);
-  edit.delete(selection);
 }
 
 /**
@@ -69,7 +54,39 @@ export function validatePasteFromFile(path: string): Promise<string> {
   return Promise.resolve(null);
 }
 
-export function findEditorForTextFile(path: string): vscode.TextEditor {
-  let editors = vscode.window.visibleTextEditors;
-  return editors.find(editor => editor.document.fileName.endsWith(path));
+export function pasteValuesIntoSelection(values: string[] = []): Promise<boolean> {
+  if (!values || values.length === 0) {
+    return Promise.resolve(false);
+  }
+
+  return Promise.resolve(vscode.window.activeTextEditor.edit(edit =>
+    getSortedSelections().forEach((selection, index) =>
+      pasteValue(edit, values[index % values.length], selection)
+    )));
+}
+
+export function getSortedSelections(): vscode.Selection[] {
+  return vscode.window.activeTextEditor.selections
+    .sort((a, b) => sortPositions(a.start, b.start));
+}
+
+function sortPositions(a: vscode.Position, b: vscode.Position): number {
+  // sort by lines, characters
+  return (a.line === b.line) ? a.character - b.character : a.line - b.line;
+}
+
+function getPositionFromSelection(selection: vscode.Selection): vscode.Position {
+  // make sure that start < end
+  return [selection.start, selection.end].sort((a, b) => sortPositions(a, b))[0];
+}
+
+function pasteValue(edit: vscode.TextEditorEdit, value: string, selection: vscode.Selection): void {
+  let position = getPositionFromSelection(selection);
+  edit.insert(position, value);
+  edit.delete(selection);
+}
+
+function findEditorForTextFile(path: string): vscode.TextEditor {
+  return vscode.window.visibleTextEditors
+    .find(editor => editor.document.fileName.endsWith(path));
 }
