@@ -2,7 +2,6 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as vm from 'vm';
 
 const CONFIG_SECTION = 'copy-paste';
 
@@ -73,13 +72,4 @@ export function validatePasteFromFile(path: string): Promise<string> {
 export function findEditorForTextFile(path: string): vscode.TextEditor {
   let editors = vscode.window.visibleTextEditors;
   return editors.find(editor => editor.document.fileName.endsWith(path));
-}
-
-export function createScriptFromDocument(document: vscode.TextDocument) {
-  const timeout = getConfiguration().get('paste-from-file.js.timeout', 1);
-  return new vm.Script(document.getText(), {
-    filename: document.fileName,
-    timeout: timeout * 1000,
-    displayErrors: true
-  });
 }

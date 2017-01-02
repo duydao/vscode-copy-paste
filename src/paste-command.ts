@@ -3,12 +3,7 @@
 import * as vscode from 'vscode';
 import * as ncp from 'copy-paste';
 import * as utils from './utils';
-import * as vm from 'vm';
-import * as lodash from 'lodash';
-import * as moment from 'moment';
-import * as numeral from 'numeral';
-import * as mathjs from 'mathjs';
-
+import { generateValuesFromJavaScript } from './script-runner'
 const WHITESPACE_REGEX = /\s/g;
 
 export class PasteCommand {
@@ -51,9 +46,12 @@ export class PasteCommand {
           return utils.showErrorMessage(message);
         }
         return this.openFile(path)
-          .then(document => this.generateValuesFromJavaScript(document))
+          .then(document => generateValuesFromJavaScript(document))
           .then(values => this.pasteValuesIntoSelection(values))
-          .catch(e => utils.showErrorMessage(`Error while running ${path}: ${e.message}`));
+          .catch(e => {
+            console.error('error while running', path, e);
+            utils.showErrorMessage(`Error while running ${path}: ${e.message}`)
+          });
       });
   }
 
@@ -71,25 +69,5 @@ export class PasteCommand {
       return Promise.resolve(editor.document);
     }
     return utils.openFile(path);
-  }
-
-  private generateValuesFromJavaScript(document: vscode.TextDocument): string[] {
-    const script = utils.createScriptFromDocument(document);
-    const session = {};
-    return utils.getSortedSelections().map((selection, index) =>
-      String(script.runInContext(vm.createContext({
-        selection,
-        index,
-        session,
-        // libs
-        require,
-        console,
-        _: lodash,
-        lodash,
-        numeral,
-        moment,
-        mathjs,
-      })))
-    );
-  }
+  } 
 }
