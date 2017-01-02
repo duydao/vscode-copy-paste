@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import { PasteCommand } from './paste-command';
+import { OpenFileCommand } from './open-file-command';
 
 const COMMAND_PREFIX = 'extension.duydao.copy-paste';
 
@@ -13,6 +14,7 @@ function register(command: string, callback: (...args: any[]) => any) {
 // this method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
   let pasteCommand = new PasteCommand();
+  let openFileCommand = new OpenFileCommand();
 
   // register paste command
   const disposables = [
@@ -20,6 +22,9 @@ export function activate(context: vscode.ExtensionContext) {
     register('pasteByClipboard', () => pasteCommand.pasteFromClipboard()),
     register('pasteByTextFile', () => pasteCommand.pasteFromTextFile()),
     register('pasteByJavaScriptFile', () => pasteCommand.pasteFromJavaScriptFile()),
+
+    register('openTextFile', () => openFileCommand.openTextFile()),
+    register('openJavaScriptFile', () => openFileCommand.openJavaScriptFile()),
   ];  
 
   context.subscriptions.push(...disposables);

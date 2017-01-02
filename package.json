@@ -14,7 +14,9 @@
     "onCommand:extension.duydao.copy-paste.pasteByInputBox",
     "onCommand:extension.duydao.copy-paste.pasteByClipboard",
     "onCommand:extension.duydao.copy-paste.pasteByTextFile",
-    "onCommand:extension.duydao.copy-paste.pasteByJavaScriptFile"
+    "onCommand:extension.duydao.copy-paste.pasteByJavaScriptFile",
+    "onCommand:extension.duydao.copy-paste.openTextFile",
+    "onCommand:extension.duydao.copy-paste.openJavaScriptFile"
   ],
   "main": "./out/src/extension",
   "contributes": {
@@ -34,6 +36,14 @@
       {
         "command": "extension.duydao.copy-paste.pasteByJavaScriptFile",
         "title": "Better copy-paste: By JavaScript file"
+      },
+      {
+        "command": "extension.duydao.copy-paste.openTextFile",
+        "title": "Better copy-paste: Open Text file"
+      },
+      {
+        "command": "extension.duydao.copy-paste.openJavaScriptFile",
+        "title": "Better copy-paste: Open JavaScript file"
       }
     ],
     "configuration": {
@@ -53,6 +63,11 @@
           "type": "number",
           "default": 1,
           "description": "JavaScript execution timeout in seconds."
+        },
+        "copy-paste.open.column": {
+          "type": "number",
+          "default": 1,
+          "description": "The opened file will be shown in this column."
         }
       }
     }
